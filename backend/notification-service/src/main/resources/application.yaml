@@ -1,0 +1,51 @@
+spring:
+  config:
+    import:
+      - optional:file:../../.env[.properties]
+      - optional:file:.env[.properties]
+  application:
+    name: notification-service
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    virtual-host: ${RABBITMQ_VHOST:/}
+
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/notification_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:ASDF1234}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:your-email@gmail.com}
+    password: ${MAIL_PASSWORD:your-app-password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+server:
+  port: ${NOTIFICATION_SERVICE_PORT:8086}
+
+app:
+  rabbitmq:
+    exchange: ${RABBITMQ_EXCHANGE:booknest.events}
+    notification-queue: ${RABBITMQ_NOTIFICATION_QUEUE:booknest.notifications}
+    notification-routing-key: ${RABBITMQ_NOTIFICATION_ROUTING_KEY:notification.events}
+
+services:
+  order:
+    url: ${ORDER_SERVICE_URL:http://localhost:8083}
+  auth:
+    url: ${AUTH_SERVICE_URL:http://localhost:8800}

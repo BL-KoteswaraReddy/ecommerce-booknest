@@ -1,0 +1,6 @@
+/Users/kotireddy/Desktop/CG-Bhopal/e-commerce-app/full-ecommerce-microservices 2/backend/api-gateway/src/main/java/com/ecommerce/config/CorsConfig.java
+/Users/kotireddy/Desktop/CG-Bhopal/e-commerce-app/full-ecommerce-microservices 2/backend/api-gateway/src/main/java/com/ecommerce/ApiGatewayServiceApplication.java
+/Users/kotireddy/Desktop/CG-Bhopal/e-commerce-app/full-ecommerce-microservices 2/backend/api-gateway/src/main/java/com/ecommerce/util/JwtUtil.java
+/Users/kotireddy/Desktop/CG-Bhopal/e-commerce-app/full-ecommerce-microservices 2/backend/api-gateway/src/main/java/com/ecommerce/controller/GatewayController.java
+/Users/kotireddy/Desktop/CG-Bhopal/e-commerce-app/full-ecommerce-microservices 2/backend/api-gateway/src/main/java/com/ecommerce/filters/JwtGatewayFilter.java
+/Users/kotireddy/Desktop/CG-Bhopal/e-commerce-app/full-ecommerce-microservices 2/backend/api-gateway/src/main/java/com/ecommerce/config/GatewaySecurityConfig.java
