@@ -75,3 +75,9 @@ desktop.ini
 *.swp
 *.swo
 *~
+**/target/
+*.pkg
+*.jar
+node_modules/
+dist/
+.env
