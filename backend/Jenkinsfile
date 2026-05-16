@@ -1,58 +1,71 @@
 pipeline {
     agent any
 
-    tools {
-        jdk 'JDK21'
-        maven 'Maven3'
-    }
-
     environment {
-        EC2_IP = 'your-ec2-ip'
         DEPLOY_PATH = '/home/ubuntu/booknest'
     }
 
     stages {
 
-        stage('Checkout') {
+        stage('Verify Build Tools') {
             steps {
-                echo 'Pulling code from GitHub...'
-                git branch: 'main',
-                    url: 'https://github.com/yourusername/booknest-backend.git'
-            }
-        }
-
-        stage('Build All Services') {
-            steps {
-                echo 'Building all microservices...'
+                echo 'Checking Java and Maven on the Jenkins agent...'
                 sh '''
-                    cd discovery-server && mvn clean package -DskipTests
-                    cd ../config-server && mvn clean package -DskipTests
-                    cd ../auth-service && mvn clean package -DskipTests
-                    cd ../book-service && mvn clean package -DskipTests
-                    cd ../api-gateway && mvn clean package -DskipTests
+                    java -version
+                    if [ -f backend/book-service/mvnw ]; then
+                      chmod +x backend/book-service/mvnw
+                    fi
+                    if [ -f backend/auth-service/mvnw ]; then
+                      chmod +x backend/auth-service/mvnw
+                    fi
+                    mvn -version || true
                 '''
             }
         }
 
-        stage('Deploy to EC2') {
+        stage('Build Core Services') {
             steps {
-                echo 'Deploying to EC2...'
+                echo 'Building core backend services...'
                 sh '''
-                    # Create deploy folder
+                    set -e
+
+                    cd backend/discovery-server
+                    mvn clean package -DskipTests
+
+                    cd ../auth-service
+                    mvn clean package -DskipTests
+
+                    cd ../book-service
+                    ./mvnw clean package -DskipTests
+
+                    cd ../api-gateway
+                    mvn clean package -DskipTests
+                '''
+            }
+        }
+
+        stage('Prepare Deployment Files') {
+            steps {
+                echo 'Preparing deployment bundle...'
+                sh '''
+                    set -e
                     mkdir -p ${DEPLOY_PATH}
 
-                    # Copy all JARs
-                    cp discovery-server/target/*.jar ${DEPLOY_PATH}/
-                    cp config-server/target/*.jar ${DEPLOY_PATH}/
-                    cp auth-service/target/*.jar ${DEPLOY_PATH}/
-                    cp book-service/target/*.jar ${DEPLOY_PATH}/
-                    cp api-gateway/target/*.jar ${DEPLOY_PATH}/
-
-                    # Copy start script
-                    cp start-services.sh ${DEPLOY_PATH}/
+                    cp backend/discovery-server/target/*.jar ${DEPLOY_PATH}/
+                    cp backend/auth-service/target/*.jar ${DEPLOY_PATH}/
+                    cp backend/book-service/target/*.jar ${DEPLOY_PATH}/
+                    cp backend/api-gateway/target/*.jar ${DEPLOY_PATH}/
+                    cp backend/start-services.sh ${DEPLOY_PATH}/
                     chmod +x ${DEPLOY_PATH}/start-services.sh
+                '''
+            }
+        }
 
-                    # Restart all services
+        stage('Deploy') {
+            steps {
+                echo 'Restarting services on the server...'
+                sh '''
+                    set -e
                     ${DEPLOY_PATH}/start-services.sh
                 '''
             }
@@ -61,10 +74,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Backend deployed successfully!'
+            echo 'Backend pipeline completed successfully.'
         }
         failure {
-            echo '❌ Deployment failed!'
+            echo 'Backend pipeline failed.'
         }
     }
 }
