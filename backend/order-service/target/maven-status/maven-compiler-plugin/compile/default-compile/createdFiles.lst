@@ -1,3 +1,0 @@
-com/ecommerce/dto/event/NotificationEvent.class
-com/ecommerce/messaging/NotificationEventPublisher.class
-com/ecommerce/config/RabbitMQConfig.class
