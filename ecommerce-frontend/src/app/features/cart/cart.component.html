@@ -1,0 +1,87 @@
+<div class="cart-container">
+  <div class="cart-header">
+    <h1>Your Shopping Cart</h1>
+    <a routerLink="/catalog" class="continue-shopping">Continue Shopping</a>
+  </div>
+
+  <div *ngIf="isLoading" style="text-align: center; padding: 4rem;">
+    <span class="spinner" style="border-top-color: var(--primary-color); display: inline-block; width: 40px; height: 40px;"></span>
+  </div>
+
+  <div *ngIf="!isLoading">
+    
+    <!-- Empty Cart State -->
+    <div *ngIf="!cart || !cart.items || cart.items.length === 0" class="empty-cart glass-panel">
+      <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+      <h2>Your cart is currently empty.</h2>
+      <p>Discover your next favorite read in our catalog.</p>
+      <a routerLink="/catalog" class="btn-primary" style="text-decoration: none; display: inline-block; margin-top: 1rem;">Browse Books</a>
+    </div>
+
+    <!-- Active Cart Layout -->
+    <div *ngIf="cart && cart.items && cart.items.length > 0" class="cart-layout">
+      
+      <!-- Cart Items List -->
+      <div class="cart-items">
+        <div class="glass-panel items-panel">
+          <div class="items-header">
+            <span class="item-count">{{ cart.totalItems }} Item(s)</span>
+            <button class="clear-btn" (click)="clearCart()" [disabled]="isUpdating">Clear Cart</button>
+          </div>
+
+          <div *ngFor="let item of cart.items" class="cart-item" [class.updating]="isUpdating">
+            <div class="item-img">
+              <img [src]="item.bookCoverImage || 'assets/placeholder-book.png'" alt="{{ item.bookTitle }}">
+            </div>
+            
+            <div class="item-details">
+              <a [routerLink]="['/books', item.bookId]" class="item-title">{{ item.bookTitle }}</a>
+              <p class="item-author">{{ item.bookAuthor }}</p>
+              <button class="remove-btn" (click)="removeItem(item)">Remove</button>
+            </div>
+
+            <div class="item-quantity">
+              <div class="qty-selector">
+                <button (click)="updateQuantity(item, -1)" [disabled]="item.quantity <= 1">-</button>
+                <span>{{ item.quantity }}</span>
+                <button (click)="updateQuantity(item, 1)">+</button>
+              </div>
+            </div>
+
+            <div class="item-price">
+              <div class="unit-price">${{ item.unitPrice | number:'1.2-2' }} each</div>
+              <div class="total-price">${{ item.totalPrice | number:'1.2-2' }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cart Summary -->
+      <div class="cart-summary">
+        <div class="glass-panel summary-panel">
+          <h3>Order Summary</h3>
+          
+          <div class="summary-row">
+            <span>Subtotal ({{ cart.totalItems }} items)</span>
+            <span>${{ cart.totalPrice | number:'1.2-2' }}</span>
+          </div>
+          
+          <div class="summary-row">
+            <span>Shipping</span>
+            <span class="text-success">Free</span>
+          </div>
+          
+          <div class="summary-row total">
+            <span>Total</span>
+            <span>${{ cart.totalPrice | number:'1.2-2' }}</span>
+          </div>
+
+          <button class="btn-primary btn-checkout" (click)="proceedToCheckout()" [disabled]="isUpdating">
+            Proceed to Checkout
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

@@ -1,0 +1,98 @@
+.user-reviews-container {
+  margin-top: 3rem;
+}
+
+.user-reviews-container h3 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 2rem;
+}
+
+.loading, .no-reviews {
+  text-align: center;
+  padding: 3rem;
+}
+
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.review-card {
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.date {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.title {
+  margin: 0.5rem 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.comment {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-main);
+  margin-bottom: 1.5rem;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.helpful {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn-view, .btn-delete {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.btn-view {
+  background: var(--primary-color);
+  color: white;
+}
+
+.btn-view:hover {
+  background: var(--primary-hover);
+}
+
+.btn-delete {
+  background: none;
+  border: 1px solid var(--error-color);
+  color: var(--error-color);
+}
+
+.btn-delete:hover {
+  background: #fee2e2;
+}

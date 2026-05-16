@@ -1,0 +1,108 @@
+<div class="wallet-container">
+  <div class="wallet-header">
+    <h1>My Wallet</h1>
+  </div>
+
+  <div class="wallet-dashboard">
+    
+    <!-- Left Column: Balance & Add Money -->
+    <div class="wallet-sidebar">
+      
+      <!-- Balance Card -->
+      <div class="balance-card">
+        <div class="balance-label">Available Balance</div>
+        <div class="balance-amount">${{ currentBalance | number:'1.2-2' }}</div>
+      </div>
+
+      <!-- Add Money Form -->
+      <div class="add-money-card glass-panel">
+        <h2>Add Money to Wallet</h2>
+        <p class="text-muted" style="margin-top: 0; font-size: 0.9rem;">Instantly top-up your BookNest E-Wallet for faster checkouts.</p>
+        
+        <form (ngSubmit)="onAddMoney()" #addMoneyForm="ngForm">
+          <div class="form-group">
+            <label>Amount ($) *</label>
+            <div class="amount-input-wrapper">
+              <span class="currency-symbol">$</span>
+              <input type="number" [(ngModel)]="addAmount" name="amount" required min="10" placeholder="10.00" class="amount-input">
+            </div>
+            <small class="text-muted">Minimum amount is $10</small>
+          </div>
+
+          <div class="form-group">
+            <label>Remarks (Optional)</label>
+            <input type="text" [(ngModel)]="addRemarks" name="remarks" placeholder="e.g. Monthly book budget">
+          </div>
+
+          <button type="submit" class="btn-primary w-100" [disabled]="!addMoneyForm.form.valid || isAddingMoney">
+            <span *ngIf="!isAddingMoney">Add Money</span>
+            <span *ngIf="isAddingMoney" class="spinner"></span>
+          </button>
+        </form>
+      </div>
+      
+    </div>
+
+    <!-- Right Column: Transactions -->
+    <div class="wallet-history glass-panel">
+      
+      <div class="history-header">
+        <h2>Transaction History</h2>
+        <div class="tabs">
+          <button [class.active]="activeTab === 'ALL'" (click)="setTab('ALL')">All</button>
+          <button [class.active]="activeTab === 'CREDIT'" (click)="setTab('CREDIT')">Credits</button>
+          <button [class.active]="activeTab === 'DEBIT'" (click)="setTab('DEBIT')">Debits</button>
+        </div>
+      </div>
+
+      <div *ngIf="isLoadingTransactions" style="text-align: center; padding: 3rem;">
+        <span class="spinner" style="border-top-color: var(--primary-color);"></span>
+      </div>
+
+      <div *ngIf="!isLoadingTransactions">
+        
+        <div *ngIf="transactions.length === 0" class="empty-state">
+          <p>No transactions found.</p>
+        </div>
+
+        <div *ngIf="transactions.length > 0" class="transaction-list">
+          <div *ngFor="let txn of transactions" class="transaction-item">
+            
+            <div class="txn-icon" [ngClass]="txn.type === 'CREDIT' ? 'icon-credit' : 'icon-debit'">
+              <svg *ngIf="txn.type === 'CREDIT'" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+              <svg *ngIf="txn.type === 'DEBIT'" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+            </div>
+            
+            <div class="txn-info">
+              <div class="txn-desc">{{ txn.description }}</div>
+              <div class="txn-meta">
+                <span>{{ txn.transactionDate | date:'medium' }}</span>
+                <span> | Ref: {{ txn.transactionId }}</span>
+              </div>
+            </div>
+
+            <div class="txn-amount-status">
+              <div class="txn-amount" [ngClass]="txn.type === 'CREDIT' ? 'text-success' : 'text-main'">
+                {{ txn.type === 'CREDIT' ? '+' : '-' }}${{ txn.amount | number:'1.2-2' }}
+              </div>
+              <div class="txn-status" [ngClass]="getStatusClass(txn.status)">
+                {{ txn.status }}
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" *ngIf="totalPages > 1">
+          <button [disabled]="currentPage === 0" (click)="changePage(-1)">Previous</button>
+          <span>Page {{ currentPage + 1 }} of {{ totalPages }}</span>
+          <button [disabled]="currentPage === totalPages - 1" (click)="changePage(1)">Next</button>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,79 @@
+<div class="container" style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
+  
+  <div *ngIf="isLoading" style="text-align: center; padding: 4rem;">
+    <span class="spinner" style="border-top-color: var(--primary-color); display: inline-block; width: 40px; height: 40px;"></span>
+  </div>
+
+  <div *ngIf="!isLoading && book" class="book-detail-grid">
+    
+    <!-- Image Section -->
+    <div class="book-image-container glass-panel">
+      <img [src]="book.coverImageUrl | imageUrl" [alt]="book.title">
+    </div>
+
+    <!-- Info Section -->
+    <div class="book-info-container">
+      <nav aria-label="breadcrumb" class="breadcrumb">
+        <a routerLink="/">Home</a> &gt; 
+        <a [routerLink]="['/catalog']" [queryParams]="{ genre: book.genre }">{{ book.genre }}</a> &gt; 
+        <span>{{ book.title }}</span>
+      </nav>
+
+      <h1 class="title">{{ book.title }}</h1>
+      <p class="author">by <strong>{{ book.author }}</strong></p>
+      
+      <div class="rating-badge" *ngIf="book.reviewCount > 0">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        <span>{{ book.rating }} ({{ book.reviewCount }} reviews)</span>
+      </div>
+
+      <div class="price-section">
+        <h2>${{ book.price | number:'1.2-2' }}</h2>
+        <span class="stock-status" [class.in-stock]="book.stock > 0" [class.out-of-stock]="book.stock === 0">
+          {{ book.stock > 0 ? 'In Stock' : 'Out of Stock' }}
+        </span>
+      </div>
+
+      <div class="description glass-panel">
+        <h3>Description</h3>
+        <p>{{ book.description || 'No description available for this book.' }}</p>
+      </div>
+
+      <div class="specifications glass-panel">
+        <h3>Specifications</h3>
+        <ul>
+          <li><strong>ISBN:</strong> {{ book.isbn }}</li>
+          <li><strong>Publisher:</strong> {{ book.publisher || 'N/A' }}</li>
+          <li><strong>Publication Date:</strong> {{ book.publishedDate ? (book.publishedDate | date:'mediumDate') : 'N/A' }}</li>
+          <li><strong>Genre:</strong> {{ book.genre }}</li>
+        </ul>
+      </div>
+
+      <!-- Add to Cart Actions -->
+      <div class="action-section" *ngIf="book.stock > 0">
+        <div class="quantity-selector">
+          <button (click)="decreaseQuantity()">-</button>
+          <span>{{ quantity }}</span>
+          <button (click)="increaseQuantity()">+</button>
+        </div>
+        <button class="btn-primary" (click)="addToCart()" [disabled]="isAddingToCart" style="flex: 1; padding: 1rem; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+          <ng-container *ngIf="!isAddingToCart">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+            Add to Cart
+          </ng-container>
+          <span *ngIf="isAddingToCart" class="spinner" style="width: 20px; height: 20px;"></span>
+        </button>
+
+        <button class="btn-wishlist" [class.active]="isInWishlist" (click)="toggleWishlist()" [disabled]="isWishlistActionLoading" title="Add to Wishlist">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" [attr.fill]="isInWishlist ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Reviews Section -->
+  <div *ngIf="book">
+    <app-reviews [bookId]="book.id"></app-reviews>
+  </div>
+</div>

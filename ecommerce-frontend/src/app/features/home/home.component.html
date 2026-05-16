@@ -1,0 +1,114 @@
+<div class="home-container">
+  
+  <!-- Hero Section -->
+  <section class="hero-section glass-panel">
+    <div class="hero-content">
+      <span class="badge">Version 1.0</span>
+      <h1>Discover. Read. Belong.</h1>
+      <p>Explore our vast collection of books across all genres. Find your next favorite read today on BookNest.</p>
+      <div class="hero-actions">
+        <a routerLink="/catalog" class="btn-primary" style="text-decoration: none; display: inline-flex; width: auto; padding: 1rem 2rem;">Browse Catalog</a>
+      </div>
+    </div>
+    <div class="hero-image">
+      <!-- A decorative abstraction for books -->
+      <div class="book-stack">
+        <div class="b-book b1"></div>
+        <div class="b-book b2"></div>
+        <div class="b-book b3"></div>
+      </div>
+    </div>
+  </section>
+
+  <div *ngIf="isLoading" style="text-align: center; padding: 4rem;">
+    <span class="spinner" style="border-top-color: var(--primary-color); display: inline-block; width: 40px; height: 40px;"></span>
+  </div>
+
+  <div *ngIf="!isLoading">
+    
+    <!-- Browse by Genre -->
+    <section class="section">
+      <div class="section-header">
+        <h2>Browse by Category</h2>
+        <a routerLink="/catalog" class="view-all">View All</a>
+      </div>
+      <div class="genre-grid">
+        <a *ngFor="let genre of genres" [routerLink]="['/catalog']" [queryParams]="{ genre: genre }" class="genre-card">
+          {{ genre }}
+        </a>
+      </div>
+    </section>
+
+    <!-- Featured Books -->
+    <section class="section" *ngIf="featuredBooks.length > 0">
+      <div class="section-header">
+        <h2>Featured Books</h2>
+        <a [routerLink]="['/catalog']" [queryParams]="{ filter: 'featured' }" class="view-all">View All</a>
+      </div>
+      <div class="book-grid">
+        <div *ngFor="let book of featuredBooks" class="book-card glass-panel">
+          <div class="book-image">
+            <img [src]="book.coverImageUrl | imageUrl" [alt]="book.title">
+          </div>
+          <div class="book-info">
+            <span class="book-genre">{{ book.genre }}</span>
+            <h3 class="book-title">{{ book.title }}</h3>
+            <p class="book-author">{{ book.author }}</p>
+            <div class="book-footer">
+              <span class="book-price">${{ book.price | number:'1.2-2' }}</span>
+              <a [routerLink]="['/books', book.id]" class="btn-primary btn-sm">Details</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bestsellers -->
+    <section class="section" *ngIf="bestsellers.length > 0">
+      <div class="section-header">
+        <h2>Bestsellers</h2>
+      </div>
+      <div class="book-grid">
+        <div *ngFor="let book of bestsellers" class="book-card glass-panel">
+          <!-- Reuse Book Card design -->
+          <div class="book-image">
+            <img [src]="book.coverImageUrl | imageUrl" [alt]="book.title">
+          </div>
+          <div class="book-info">
+            <span class="book-genre">{{ book.genre }}</span>
+            <h3 class="book-title">{{ book.title }}</h3>
+            <p class="book-author">{{ book.author }}</p>
+            <div class="book-footer">
+              <span class="book-price">${{ book.price | number:'1.2-2' }}</span>
+              <a [routerLink]="['/books', book.id]" class="btn-primary btn-sm">Details</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- New Arrivals -->
+    <section class="section" *ngIf="newArrivals.length > 0">
+      <div class="section-header">
+        <h2>New Arrivals</h2>
+      </div>
+      <div class="book-grid">
+        <div *ngFor="let book of newArrivals" class="book-card glass-panel">
+          <div class="book-image">
+            <img [src]="book.coverImageUrl | imageUrl" [alt]="book.title">
+          </div>
+          <div class="book-info">
+            <span class="book-genre">{{ book.genre }}</span>
+            <h3 class="book-title">{{ book.title }}</h3>
+            <p class="book-author">{{ book.author }}</p>
+            <div class="book-footer">
+              <span class="book-price">${{ book.price | number:'1.2-2' }}</span>
+              <a [routerLink]="['/books', book.id]" class="btn-primary btn-sm">Details</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>

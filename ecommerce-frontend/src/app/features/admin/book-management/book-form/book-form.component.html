@@ -1,0 +1,112 @@
+<div class="admin-container" style="max-width: 800px;">
+  
+  <div class="admin-header">
+    <h2>{{ isEditMode ? 'Edit Book' : 'Add New Book' }}</h2>
+    <a routerLink="/admin/books" class="btn-outline" style="text-decoration: none;">Back to List</a>
+  </div>
+
+  <div class="glass-panel" style="padding: 2rem;">
+    
+    <div *ngIf="isLoading" style="text-align: center; padding: 2rem;">
+      <span class="spinner" style="border-top-color: var(--primary-color); display: inline-block;"></span>
+    </div>
+
+    <form *ngIf="!isLoading" [formGroup]="bookForm" (ngSubmit)="onSubmit()" class="admin-form">
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label>Title *</label>
+          <input type="text" formControlName="title" placeholder="Book Title"
+                 [class.invalid]="bookForm.get('title')?.invalid && bookForm.get('title')?.touched">
+          <span class="error-msg" *ngIf="bookForm.get('title')?.invalid && bookForm.get('title')?.touched">Required. Max 200 chars.</span>
+        </div>
+        
+        <div class="form-group">
+          <label>Author *</label>
+          <input type="text" formControlName="author" placeholder="Author Name"
+                 [class.invalid]="bookForm.get('author')?.invalid && bookForm.get('author')?.touched">
+          <span class="error-msg" *ngIf="bookForm.get('author')?.invalid && bookForm.get('author')?.touched">Required. Max 100 chars.</span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Genre *</label>
+          <input type="text" formControlName="genre" placeholder="e.g. Fiction, Sci-Fi"
+                 [class.invalid]="bookForm.get('genre')?.invalid && bookForm.get('genre')?.touched">
+          <span class="error-msg" *ngIf="bookForm.get('genre')?.invalid && bookForm.get('genre')?.touched">Required.</span>
+        </div>
+        
+        <div class="form-group">
+          <label>ISBN</label>
+          <input type="text" formControlName="isbn" placeholder="ISBN-13 or ISBN-10"
+                 [class.invalid]="bookForm.get('isbn')?.invalid && bookForm.get('isbn')?.touched">
+          <span class="error-msg" *ngIf="bookForm.get('isbn')?.invalid && bookForm.get('isbn')?.touched">Invalid ISBN format.</span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Price ($) *</label>
+          <input type="number" step="0.01" formControlName="price"
+                 [class.invalid]="bookForm.get('price')?.invalid && bookForm.get('price')?.touched">
+          <span class="error-msg" *ngIf="bookForm.get('price')?.invalid && bookForm.get('price')?.touched">Positive price required.</span>
+        </div>
+        
+        <div class="form-group">
+          <label>Stock *</label>
+          <input type="number" formControlName="stock"
+                 [class.invalid]="bookForm.get('stock')?.invalid && bookForm.get('stock')?.touched">
+          <span class="error-msg" *ngIf="bookForm.get('stock')?.invalid && bookForm.get('stock')?.touched">Cannot be negative.</span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Publisher</label>
+          <input type="text" formControlName="publisher" placeholder="Publisher Name">
+        </div>
+        
+        <div class="form-group">
+          <label>Published Date</label>
+          <input type="date" formControlName="publishedDate">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Cover Image URL</label>
+        <input type="text" formControlName="coverImageUrl" placeholder="https://example.com/image.jpg">
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea formControlName="description" rows="5" placeholder="Detailed book description..."></textarea>
+      </div>
+
+      <div class="form-row checkbox-row">
+        <label class="checkbox-container">
+          <input type="checkbox" formControlName="isFeatured">
+          <span>Featured Book</span>
+        </label>
+        
+        <label class="checkbox-container">
+          <input type="checkbox" formControlName="isBestseller">
+          <span>Bestseller</span>
+        </label>
+      </div>
+
+      <div class="error-alert" *ngIf="errorMessage" style="margin-top: 1rem;">
+        {{ errorMessage }}
+      </div>
+
+      <div class="form-actions" style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
+        <button type="button" class="btn-outline" routerLink="/admin/books">Cancel</button>
+        <button type="submit" class="btn-primary" [disabled]="isSaving" style="width: auto; padding: 0.5rem 2rem;">
+          <span *ngIf="!isSaving">Save Book</span>
+          <span *ngIf="isSaving" class="spinner"></span>
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

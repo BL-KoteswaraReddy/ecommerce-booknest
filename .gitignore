@@ -1,0 +1,77 @@
+#################################
+# ===== JAVA / SPRING BOOT =====
+#################################
+# Maven build output
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# Gradle
+.gradle/
+build/
+
+# Logs
+*.log
+logs/
+
+# Compiled files
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# ✅ REMOVED: application.yml and application.properties
+# Only ignore SECRET/local override files
+application-local.yml
+application-local.properties
+application-secret.yml
+application-secret.properties
+
+#################################
+# ===== NODE / REACT / ANGULAR =====
+#################################
+node_modules/
+dist/
+.angular/
+.tmp/
+coverage/
+
+# ✅ REMOVED: src/environments/*.ts
+# Only ignore secret environment files
+src/environments/environment.secret.ts
+
+#################################
+# ===== DOCKER =====
+#################################
+docker-compose.override.yml
+.env
+*.env
+
+#################################
+# ===== IDE FILES =====
+#################################
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+
+#################################
+# ===== OS FILES =====
+#################################
+.DS_Store
+Thumbs.db
+desktop.ini
+
+#################################
+# ===== TEMP FILES =====
+#################################
+*.swp
+*.swo
+*~

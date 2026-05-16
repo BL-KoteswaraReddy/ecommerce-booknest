@@ -1,0 +1,85 @@
+<div class="admin-container">
+  <div class="admin-header">
+    <h2>Order Management</h2>
+    
+    <div class="filter-controls">
+      <label for="statusFilter">Filter by Status:</label>
+      <select id="statusFilter" [(ngModel)]="statusFilter" (change)="onFilterChange()" class="status-select">
+        <option value="ALL">All Orders</option>
+        <option *ngFor="let status of availableStatuses" [value]="status">{{ status }}</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="glass-panel" style="overflow-x: auto; padding: 1rem;">
+    
+    <div *ngIf="isLoading" style="text-align: center; padding: 2rem;">
+      <span class="spinner" style="border-top-color: var(--primary-color); display: inline-block;"></span>
+    </div>
+
+    <table class="admin-table" *ngIf="!isLoading">
+      <thead>
+        <tr>
+          <th>Order Info</th>
+          <th>Customer Info</th>
+          <th>Date</th>
+          <th>Total</th>
+          <th>Payment</th>
+          <th>Current Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let order of orders" [class.updating]="updatingOrderId === order.id">
+          <td>
+            <a [routerLink]="['/orders', order.id]" class="fw-bold text-primary" style="text-decoration: none;">
+              #{{ order.orderNumber }}
+            </a>
+            <div class="text-xs">{{ order.items.length }} item(s)</div>
+          </td>
+          <td>
+            <div class="fw-bold">{{ order.shippingAddress.fullName }}</div>
+            <div class="text-xs">User ID: {{ order.userId }}</div>
+          </td>
+          <td>
+            <div class="text-sm">{{ order.orderDate | date:'shortDate' }}</div>
+            <div class="text-xs">{{ order.orderDate | date:'shortTime' }}</div>
+          </td>
+          <td class="fw-bold">${{ order.finalAmount | number:'1.2-2' }}</td>
+          <td>
+            <div class="text-sm">{{ order.paymentMode }}</div>
+            <div class="text-xs" [class.text-success]="order.paymentStatus === 'COMPLETED'">
+              {{ order.paymentStatus || 'PENDING' }}
+            </div>
+          </td>
+          <td>
+            <span class="badge" [ngClass]="getStatusClass(order.status)">
+              {{ order.status }}
+            </span>
+          </td>
+          <td class="actions-cell">
+            <select 
+              [ngModel]="order.status" 
+              (ngModelChange)="updateStatus(order, $event)"
+              [disabled]="updatingOrderId === order.id"
+              class="action-select">
+              <option *ngFor="let status of availableStatuses" [value]="status" [disabled]="status === 'CANCELLED' && order.status !== 'CANCELLED'">
+                Mark as {{ status }}
+              </option>
+            </select>
+            <span *ngIf="updatingOrderId === order.id" class="spinner small-spinner"></span>
+          </td>
+        </tr>
+        <tr *ngIf="orders.length === 0">
+          <td colspan="7" style="text-align: center; padding: 2rem;">No orders found.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="pagination" *ngIf="totalPages > 1 && !isLoading">
+      <button [disabled]="currentPage === 0" (click)="changePage(-1)">Prev</button>
+      <span>Page {{ currentPage + 1 }} of {{ totalPages }}</span>
+      <button [disabled]="currentPage === totalPages - 1" (click)="changePage(1)">Next</button>
+    </div>
+  </div>
+</div>

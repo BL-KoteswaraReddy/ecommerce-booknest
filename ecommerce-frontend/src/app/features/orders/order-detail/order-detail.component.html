@@ -1,0 +1,112 @@
+<div class="order-detail-container">
+  
+  <div class="header-actions">
+    <a routerLink="/orders" class="back-link">&larr; Back to Orders</a>
+  </div>
+
+  <div *ngIf="isLoading" style="text-align: center; padding: 4rem;">
+    <span class="spinner" style="border-top-color: var(--primary-color); display: inline-block; width: 40px; height: 40px;"></span>
+  </div>
+
+  <div *ngIf="errorMessage" class="error-alert" style="margin: 2rem 0;">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="!isLoading && order" class="order-detail-content">
+    
+    <div class="order-header glass-panel">
+      <div class="header-main">
+        <h1>Order #{{ order.orderNumber }}</h1>
+        <div class="status-badge" [ngClass]="getStatusClass(order.status)">
+          {{ order.status }}
+        </div>
+      </div>
+      <div class="header-meta">
+        <span>Placed on {{ order.orderDate | date:'medium' }}</span>
+        <button *ngIf="canCancel()" class="btn-cancel" (click)="cancelOrder()" [disabled]="isCancelling">
+          <span *ngIf="!isCancelling">Cancel Order</span>
+          <span *ngIf="isCancelling">Cancelling...</span>
+        </button>
+      </div>
+      <div *ngIf="order.status === 'CANCELLED' && order.cancellationReason" class="cancellation-reason">
+        <strong>Reason:</strong> {{ order.cancellationReason }}
+      </div>
+    </div>
+
+    <div class="order-grid">
+      
+      <!-- Items List -->
+      <div class="order-items glass-panel">
+        <h2>Items in this Order</h2>
+        <div class="items-list">
+          <div *ngFor="let item of order.items" class="item-row">
+            <div class="item-img">
+              <img [src]="item.bookCoverImage || 'assets/placeholder-book.png'" alt="Cover">
+            </div>
+            <div class="item-info">
+              <a [routerLink]="['/books', item.bookId]" class="item-title">{{ item.bookTitle }}</a>
+              <div class="item-meta">
+                <span>By {{ item.bookAuthor }}</span> | <span>ISBN: {{ item.bookIsbn }}</span>
+              </div>
+              <div class="item-price-qty">
+                <span>${{ item.unitPrice | number:'1.2-2' }} &times; {{ item.quantity }}</span>
+                <strong class="item-total">${{ item.totalPrice | number:'1.2-2' }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Details Sidebar -->
+      <div class="order-sidebar">
+        
+        <div class="glass-panel sidebar-section">
+          <h2>Summary</h2>
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <span>${{ order.totalAmount | number:'1.2-2' }}</span>
+          </div>
+          <div class="summary-row">
+            <span>Shipping</span>
+            <span>${{ order.shippingCharge | number:'1.2-2' }}</span>
+          </div>
+          <div class="summary-row" *ngIf="order.discountAmount > 0">
+            <span>Discount</span>
+            <span class="text-error">-${{ order.discountAmount | number:'1.2-2' }}</span>
+          </div>
+          <div class="summary-row total">
+            <span>Total</span>
+            <span>${{ order.finalAmount | number:'1.2-2' }}</span>
+          </div>
+        </div>
+
+        <div class="glass-panel sidebar-section">
+          <h2>Shipping Address</h2>
+          <div class="address-card">
+            <strong>{{ order.shippingAddress.fullName }}</strong>
+            <p>{{ order.shippingAddress.address }}</p>
+            <p>{{ order.shippingAddress.city }}, {{ order.shippingAddress.state }} {{ order.shippingAddress.postalCode }}</p>
+            <p>{{ order.shippingAddress.country }}</p>
+            <p><strong>Mobile:</strong> {{ order.shippingAddress.mobile }}</p>
+          </div>
+        </div>
+
+        <div class="glass-panel sidebar-section">
+          <h2>Payment Info</h2>
+          <div class="payment-card">
+            <div class="payment-row">
+              <span class="label">Method:</span>
+              <span class="value">{{ order.paymentMode }}</span>
+            </div>
+            <div class="payment-row">
+              <span class="label">Status:</span>
+              <span class="value" [class.text-success]="order.paymentStatus === 'COMPLETED'">{{ order.paymentStatus || 'PENDING' }}</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>

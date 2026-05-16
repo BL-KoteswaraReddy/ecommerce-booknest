@@ -1,0 +1,91 @@
+<div class="catalog-layout">
+  <!-- Sidebar -->
+  <aside class="catalog-sidebar glass-panel">
+    <h3>Filters</h3>
+    
+    <div class="filter-group">
+      <button class="clear-btn" (click)="clearFilters()">Clear All Filters</button>
+    </div>
+
+    <div class="filter-group">
+      <h4>Categories</h4>
+      <ul class="genre-list">
+        <li>
+          <a [routerLink]="['/catalog']" [class.active]="!currentGenre && !currentKeyword && !currentFilter">
+            All Books
+          </a>
+        </li>
+        <li *ngFor="let genre of genres">
+          <a [routerLink]="['/catalog']" [queryParams]="{ genre: genre }" [class.active]="currentGenre === genre">
+            {{ genre }}
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="filter-group">
+      <h4>Special Collections</h4>
+      <ul class="genre-list">
+        <li>
+          <a [routerLink]="['/catalog']" [queryParams]="{ filter: 'featured' }" [class.active]="currentFilter === 'featured'">
+            Featured Books
+          </a>
+        </li>
+        <li>
+          <a [routerLink]="['/catalog']" [queryParams]="{ filter: 'bestsellers' }" [class.active]="currentFilter === 'bestsellers'">
+            Bestsellers
+          </a>
+        </li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="catalog-main">
+    <div class="catalog-header">
+      <h2>
+        <span *ngIf="currentKeyword">Search Results for "{{ currentKeyword }}"</span>
+        <span *ngIf="currentGenre">{{ currentGenre }} Books</span>
+        <span *ngIf="currentFilter === 'featured'">Featured Books</span>
+        <span *ngIf="currentFilter === 'bestsellers'">Bestsellers</span>
+        <span *ngIf="!currentKeyword && !currentGenre && !currentFilter">All Books</span>
+      </h2>
+      <p class="results-count">Showing {{ books.length }} of {{ totalElements }} results</p>
+    </div>
+
+    <div *ngIf="isLoading" style="text-align: center; padding: 4rem;">
+      <span class="spinner" style="border-top-color: var(--primary-color); display: inline-block; width: 40px; height: 40px;"></span>
+    </div>
+
+    <div *ngIf="!isLoading && books.length === 0" class="empty-state glass-panel">
+      <h3>No books found</h3>
+      <p>Try adjusting your search or filters to find what you're looking for.</p>
+      <button class="btn-primary" (click)="clearFilters()" style="width: auto; margin-top: 1rem;">View All Books</button>
+    </div>
+
+    <div *ngIf="!isLoading && books.length > 0" class="book-grid">
+      <div *ngFor="let book of books" class="book-card glass-panel">
+        <div class="book-image">
+          <img [src]="book.coverImageUrl | imageUrl" [alt]="book.title">
+          <div *ngIf="book.stock === 0" class="out-of-stock-badge">Out of Stock</div>
+        </div>
+        <div class="book-info">
+          <span class="book-genre">{{ book.genre }}</span>
+          <h3 class="book-title" [title]="book.title">{{ book.title }}</h3>
+          <p class="book-author">{{ book.author }}</p>
+          <div class="book-footer">
+            <span class="book-price">${{ book.price | number:'1.2-2' }}</span>
+            <a [routerLink]="['/books', book.id]" class="btn-primary btn-sm">Details</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="totalPages > 1">
+      <button [disabled]="currentPage === 0" (click)="changePage(currentPage - 1)">Previous</button>
+      <span class="page-info">Page {{ currentPage + 1 }} of {{ totalPages }}</span>
+      <button [disabled]="currentPage === totalPages - 1" (click)="changePage(currentPage + 1)">Next</button>
+    </div>
+  </main>
+</div>

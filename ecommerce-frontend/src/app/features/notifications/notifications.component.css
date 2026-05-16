@@ -1,0 +1,48 @@
+.notification-card {
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.notification-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important;
+}
+
+.unread-card {
+  background-color: #f8f9fa;
+  border-left: 4px solid var(--bs-primary) !important;
+}
+
+.unread-indicator {
+  position: absolute;
+  top: 1rem;
+  left: -0.25rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  transform: translateX(-50%);
+}
+
+.icon-circle {
+  width: 48px;
+  height: 48px;
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.hover-danger:hover {
+  color: var(--bs-danger) !important;
+  background-color: var(--bs-danger-bg-subtle) !important;
+}
+
+.transition-all {
+  transition: all 0.2s ease-in-out;
+}
