@@ -1,0 +1,87 @@
+<nav class="navbar glass-panel">
+  <div class="navbar-container">
+    <div class="navbar-brand">
+      <a routerLink="/" class="logo">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+        <span>BookNest</span>
+      </a>
+    </div>
+
+    <div class="navbar-search">
+      <form (ngSubmit)="onSearch()">
+        <input type="text" name="search" [(ngModel)]="searchQuery" placeholder="Search books by title, author...">
+        <button type="submit">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </button>
+      </form>
+    </div>
+
+    <div class="navbar-menu">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
+      <a routerLink="/catalog" routerLinkActive="active">Catalog</a>
+      
+      <ng-container *ngIf="!currentUser">
+        <a routerLink="/login" class="nav-btn-outline">Log In</a>
+        <a routerLink="/register" class="nav-btn-primary">Sign Up</a>
+      </ng-container>
+
+      <ng-container *ngIf="currentUser">
+        <div class="admin-links" *ngIf="currentUser.role === 'ADMIN'">
+          <a routerLink="/admin/books" routerLinkActive="active" class="admin-link">Books</a>
+          <a routerLink="/admin/orders" routerLinkActive="active" class="admin-link">Orders</a>
+        </div>
+        
+        <div class="nav-actions">
+          <a routerLink="/wishlist" routerLinkActive="active" class="icon-link" title="Wishlist">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+            <span class="badge" *ngIf="wishlistItemCount > 0">{{ wishlistItemCount }}</span>
+          </a>
+          
+          <a routerLink="/cart" routerLinkActive="active" class="icon-link" title="Shopping Cart">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+            <span class="badge" *ngIf="cartItemCount > 0">{{ cartItemCount }}</span>
+          </a>
+
+          <a routerLink="/notifications" routerLinkActive="active" class="icon-link" title="Notifications">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            <span class="badge" *ngIf="unreadNotificationCount > 0">{{ unreadNotificationCount }}</span>
+          </a>
+
+          <div class="user-dropdown">
+            <button class="dropdown-trigger">
+              <div class="user-avatar">
+                {{ currentUser.fullName ? currentUser.fullName.charAt(0).toUpperCase() : 'U' }}
+              </div>
+              <span class="user-name">{{ currentUser.fullName ? currentUser.fullName.split(' ')[0] : 'User' }}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <div class="dropdown-content glass-panel">
+              <div class="dropdown-header">
+                <p class="header-name">{{ currentUser.fullName }}</p>
+                <p class="header-email">{{ currentUser.email }}</p>
+              </div>
+              <hr>
+              <a routerLink="/profile" routerLinkActive="active" class="dropdown-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                My Profile
+              </a>
+              <a routerLink="/wallet" routerLinkActive="active" class="dropdown-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+                Wallet: ${{ walletBalance | number:'1.2-2' }}
+              </a>
+              <a routerLink="/orders" routerLinkActive="active" class="dropdown-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                My Orders
+              </a>
+              <hr>
+              <button (click)="logout()" class="dropdown-item logout-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</nav>

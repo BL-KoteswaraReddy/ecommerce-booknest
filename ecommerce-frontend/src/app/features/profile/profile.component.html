@@ -1,0 +1,101 @@
+<div class="auth-container">
+  <div class="auth-card glass-panel profile-card">
+    <div class="profile-header">
+      <h2>My Profile</h2>
+      <div class="btn-group">
+        <button class="btn-primary btn-edit" (click)="toggleEdit()">
+          {{ isEditing ? 'Cancel' : 'Edit Profile' }}
+        </button>
+        <button class="btn-primary btn-logout" (click)="logout()">Logout</button>
+      </div>
+    </div>
+
+    <div *ngIf="user" class="profile-details">
+      <!-- View Mode -->
+      <div *ngIf="!isEditing" class="info-grid">
+        <div class="info-item">
+          <label>Full Name</label>
+          <p>{{ user.fullName }}</p>
+        </div>
+        <div class="info-item">
+          <label>Email Address</label>
+          <p>{{ user.email }}</p>
+        </div>
+        <div class="info-item">
+          <label>Account Role</label>
+          <div style="margin-top: 0.25rem;">
+            <span class="role-badge">{{ user.role }}</span>
+          </div>
+        </div>
+        <div class="info-item">
+          <label>Mobile Number</label>
+          <p>{{ user.mobile || 'Not provided' }}</p>
+        </div>
+      </div>
+
+      <!-- Edit Mode -->
+      <form *ngIf="isEditing" [formGroup]="editProfileForm" (ngSubmit)="onUpdateProfile()" class="auth-form">
+        <div class="edit-grid">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" formControlName="fullName" placeholder="Enter full name">
+            <div *ngIf="editProfileForm.get('fullName')?.touched && editProfileForm.get('fullName')?.invalid" class="error-msg">
+              Name is required
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Mobile Number</label>
+            <input type="text" formControlName="mobile" placeholder="Enter 10-digit mobile">
+            <div *ngIf="editProfileForm.get('mobile')?.touched && editProfileForm.get('mobile')?.invalid" class="error-msg">
+              Valid 10-digit mobile is required
+            </div>
+          </div>
+        </div>
+        
+        <div *ngIf="profileMsg" class="msg-alert" [ngStyle]="{'color': isProfileError ? 'var(--error-color)' : '#166534', 'background': isProfileError ? '#fee2e2' : '#dcfce7'}">
+          {{ profileMsg }}
+        </div>
+
+        <button type="submit" class="btn-primary" [disabled]="editProfileForm.invalid || isUpdatingProfile">
+          <span *ngIf="!isUpdatingProfile">Save Profile Changes</span>
+          <span *ngIf="isUpdatingProfile" class="spinner"></span>
+        </button>
+      </form>
+    </div>
+
+    <div *ngIf="!user" style="text-align: center; padding: 3rem;">
+      <span class="spinner" style="border-top-color: var(--primary-color); width: 40px; height: 40px; border-width: 3px;"></span>
+      <p style="margin-top: 1rem; color: var(--text-muted);">Loading profile details...</p>
+    </div>
+
+    <div class="change-password-section">
+      <h3>Change Your Password</h3>
+      
+      <form [formGroup]="changePasswordForm" (ngSubmit)="onChangePassword()" class="auth-form">
+        <div class="edit-grid">
+          <div class="form-group">
+            <label>Current Password</label>
+            <input type="password" formControlName="oldPassword" placeholder="Enter current password">
+          </div>
+          <div class="form-group">
+            <label>New Password</label>
+            <input type="password" formControlName="newPassword" placeholder="Minimum 6 characters">
+          </div>
+        </div>
+
+        <div *ngIf="passwordMsg" class="msg-alert" [ngStyle]="{'color': isPasswordError ? 'var(--error-color)' : '#166534', 'background': isPasswordError ? '#fee2e2' : '#dcfce7'}">
+          {{ passwordMsg }}
+        </div>
+
+        <button type="submit" class="btn-primary" [disabled]="changePasswordForm.invalid || isChangingPwd">
+          <span *ngIf="!isChangingPwd">Update Password</span>
+          <span *ngIf="isChangingPwd" class="spinner"></span>
+        </button>
+      </form>
+    </div>
+
+    <hr style="border: none; border-top: 1px solid rgba(0,0,0,0.05); margin: 3rem 0;">
+
+    <app-user-reviews *ngIf="user?.userId" [userId]="user!.userId"></app-user-reviews>
+  </div>
+</div>

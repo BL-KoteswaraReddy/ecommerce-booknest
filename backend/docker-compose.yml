@@ -1,0 +1,302 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: booknest-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - booknest-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: booknest-redis
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    networks:
+      - booknest-net
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: booknest-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - booknest-net
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    container_name: booknest-elasticsearch
+    restart: unless-stopped
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - booknest-net
+
+  discovery-server:
+    image: ${IMAGE_NAMESPACE}/booknest-discovery-server:${IMAGE_TAG}
+    container_name: booknest-discovery-server
+    restart: unless-stopped
+    ports:
+      - "8761:8761"
+    networks:
+      - booknest-net
+
+  auth-service:
+    image: ${IMAGE_NAMESPACE}/booknest-auth-service:${IMAGE_TAG}
+    container_name: booknest-auth-service
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/auth_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka
+      EUREKA_INSTANCE_HOSTNAME: auth-service
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      APP_JWT_SECRET: ${JWT_SECRET}
+      APP_INTERNAL_SECRET: ${APP_INTERNAL_SECRET}
+      APP_FRONTEND_URL: ${FRONTEND_URL}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_REDIRECT_URI: ${BACKEND_URL}/login/oauth2/code/google
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+    networks:
+      - booknest-net
+
+  book-service:
+    image: ${IMAGE_NAMESPACE}/booknest-book-service:${IMAGE_TAG}
+    container_name: booknest-book-service
+    restart: unless-stopped
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USERNAME: root
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      REDIS_HOST: redis
+      ELASTICSEARCH_URIS: http://elasticsearch:9200
+      EUREKA_DEFAULT_ZONE: http://discovery-server:8761/eureka
+      EUREKA_INSTANCE_HOSTNAME: book-service
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      APP_INTERNAL_SECRET: ${APP_INTERNAL_SECRET}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      elasticsearch:
+        condition: service_started
+      discovery-server:
+        condition: service_started
+    networks:
+      - booknest-net
+
+  cart-service:
+    image: ${IMAGE_NAMESPACE}/booknest-cart-service:${IMAGE_TAG}
+    container_name: booknest-cart-service
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/cart_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka
+      EUREKA_INSTANCE_HOSTNAME: cart-service
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      APP_INTERNAL_SECRET: ${APP_INTERNAL_SECRET}
+      BOOK_SERVICE_URL: http://book-service:8081
+    depends_on:
+      mysql:
+        condition: service_healthy
+      book-service:
+        condition: service_started
+      discovery-server:
+        condition: service_started
+    networks:
+      - booknest-net
+
+  order-service:
+    image: ${IMAGE_NAMESPACE}/booknest-order-service:${IMAGE_TAG}
+    container_name: booknest-order-service
+    restart: unless-stopped
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USERNAME: root
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      EUREKA_DEFAULT_ZONE: http://discovery-server:8761/eureka
+      EUREKA_INSTANCE_HOSTNAME: order-service
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      APP_INTERNAL_SECRET: ${APP_INTERNAL_SECRET}
+      CART_SERVICE_URL: http://cart-service:8082
+      BOOK_SERVICE_URL: http://book-service:8081
+      WALLET_SERVICE_URL: http://wallet-service:8084
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      cart-service:
+        condition: service_started
+    networks:
+      - booknest-net
+
+  wallet-service:
+    image: ${IMAGE_NAMESPACE}/booknest-wallet-service:${IMAGE_TAG}
+    container_name: booknest-wallet-service
+    restart: unless-stopped
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USERNAME: root
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      EUREKA_DEFAULT_ZONE: http://discovery-server:8761/eureka
+      EUREKA_INSTANCE_HOSTNAME: wallet-service
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      APP_INTERNAL_SECRET: ${APP_INTERNAL_SECRET}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      discovery-server:
+        condition: service_started
+    networks:
+      - booknest-net
+
+  wishlist-service:
+    image: ${IMAGE_NAMESPACE}/booknest-wishlist-service:${IMAGE_TAG}
+    container_name: booknest-wishlist-service
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/wishlist_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka
+      EUREKA_INSTANCE_HOSTNAME: wishlist-service
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      APP_INTERNAL_SECRET: ${APP_INTERNAL_SECRET}
+      SERVICES_BOOK_URL: http://book-service:8081
+      SERVICES_CART_URL: http://cart-service:8082
+    depends_on:
+      mysql:
+        condition: service_healthy
+      book-service:
+        condition: service_started
+      discovery-server:
+        condition: service_started
+    networks:
+      - booknest-net
+
+  review-service:
+    image: ${IMAGE_NAMESPACE}/booknest-review-service:${IMAGE_TAG}
+    container_name: booknest-review-service
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/booknest_review_db?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka
+      EUREKA_INSTANCE_HOSTNAME: review-service
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      SERVICES_BOOK_URL: http://book-service:8081
+      SERVICES_ORDER_URL: http://order-service:8083
+    depends_on:
+      mysql:
+        condition: service_healthy
+      book-service:
+        condition: service_started
+      order-service:
+        condition: service_started
+    networks:
+      - booknest-net
+
+  notification-service:
+    image: ${IMAGE_NAMESPACE}/booknest-notification-service:${IMAGE_TAG}
+    container_name: booknest-notification-service
+    restart: unless-stopped
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USERNAME: root
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      ORDER_SERVICE_URL: http://order-service:8083
+      AUTH_SERVICE_URL: http://auth-service:8800
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    networks:
+      - booknest-net
+
+  api-gateway:
+    image: ${IMAGE_NAMESPACE}/booknest-api-gateway:${IMAGE_TAG}
+    container_name: booknest-api-gateway
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka
+      EUREKA_INSTANCE_HOSTNAME: api-gateway
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      APP_JWT_SECRET: ${JWT_SECRET}
+      APP_INTERNAL_SECRET: ${APP_INTERNAL_SECRET}
+      APP_CORS_ALLOWED_ORIGINS: ${FRONTEND_URL}
+    depends_on:
+      discovery-server:
+        condition: service_started
+      auth-service:
+        condition: service_started
+      book-service:
+        condition: service_started
+      cart-service:
+        condition: service_started
+      order-service:
+        condition: service_started
+      wallet-service:
+        condition: service_started
+      wishlist-service:
+        condition: service_started
+      review-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+    networks:
+      - booknest-net
+
+networks:
+  booknest-net:
+    driver: bridge
+
+volumes:
+  mysql-data:
+  redis-data:
+  rabbitmq-data:
+  elasticsearch-data:

@@ -1,0 +1,38 @@
+<div class="user-reviews-container">
+  <h3>My Reviews</h3>
+
+  <div *ngIf="isLoading" class="loading">
+    <span class="spinner"></span>
+  </div>
+
+  <div *ngIf="!isLoading && reviews.length === 0" class="no-reviews">
+    <p>You haven't written any reviews yet.</p>
+    <a routerLink="/catalog" class="btn-primary">Browse Books</a>
+  </div>
+
+  <div *ngIf="!isLoading && reviews.length > 0" class="reviews-list">
+    <div class="review-card glass-panel" *ngFor="let review of reviews">
+      <div class="card-header">
+        <div class="rating">
+          <svg *ngFor="let s of [1,2,3,4,5]" 
+               [attr.fill]="s <= review.rating ? '#fbbf24' : 'none'"
+               xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+        </div>
+        <span class="date">{{ review.reviewDate | date:'mediumDate' }}</span>
+      </div>
+
+      <h4 class="title">{{ review.title || 'Review for Book #' + review.bookId }}</h4>
+      <p class="comment">{{ review.comment }}</p>
+
+      <div class="card-footer">
+        <span class="helpful">Helpful: {{ review.helpfulCount }}</span>
+        <div class="actions">
+          <a [routerLink]="['/books', review.bookId]" class="btn-view">View Book</a>
+          <button class="btn-delete" (click)="deleteReview(review.id)">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

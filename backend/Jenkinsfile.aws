@@ -1,0 +1,119 @@
+pipeline {
+    agent any
+
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+    }
+
+    parameters {
+        string(name: 'IMAGE_NAMESPACE', defaultValue: 'your-dockerhub-username', description: 'Docker Hub username or registry namespace')
+        string(name: 'IMAGE_TAG', defaultValue: 'latest', description: 'Docker image tag, for example build-${BUILD_NUMBER}')
+        string(name: 'EC2_HOST', defaultValue: 'ubuntu@your-ec2-public-dns', description: 'EC2 SSH target')
+        string(name: 'BACKEND_URL', defaultValue: 'http://your-ec2-public-dns:8080', description: 'Public API gateway URL')
+        string(name: 'FRONTEND_URL', defaultValue: 'https://your-cloudfront-domain.cloudfront.net', description: 'Frontend URL allowed by CORS and OAuth callback')
+    }
+
+    environment {
+        DEPLOY_PATH = '/home/ubuntu/booknest-backend'
+        SERVICES = 'discovery-server api-gateway auth-service book-service cart-service order-service wallet-service wishlist-service review-service notification-service'
+    }
+
+    stages {
+        stage('Build JARs') {
+            steps {
+                dir('backend') {
+                    sh '''
+                        set -eux
+                        for service in $SERVICES; do
+                          echo "Building $service"
+                          (cd "$service" && mvn -q clean package -DskipTests)
+                        done
+                    '''
+                }
+            }
+        }
+
+        stage('Build Docker Images') {
+            steps {
+                dir('backend') {
+                    sh '''
+                        set -eux
+                        for service in $SERVICES; do
+                          docker build -t ${IMAGE_NAMESPACE}/booknest-${service}:${IMAGE_TAG} "$service"
+                        done
+                    '''
+                }
+            }
+        }
+
+        stage('Push Docker Images') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh '''
+                        set -eux
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        for service in $SERVICES; do
+                          docker push ${IMAGE_NAMESPACE}/booknest-${service}:${IMAGE_TAG}
+                        done
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy On EC2') {
+            steps {
+                withCredentials([
+                    sshUserPrivateKey(credentialsId: 'ec2-ssh-key', keyFileVariable: 'SSH_KEY'),
+                    string(credentialsId: 'booknest-mysql-password', variable: 'MYSQL_PASSWORD'),
+                    string(credentialsId: 'booknest-rabbitmq-password', variable: 'RABBITMQ_PASSWORD'),
+                    string(credentialsId: 'booknest-internal-secret', variable: 'APP_INTERNAL_SECRET'),
+                    string(credentialsId: 'booknest-jwt-secret', variable: 'JWT_SECRET'),
+                    string(credentialsId: 'google-client-id', variable: 'GOOGLE_CLIENT_ID'),
+                    string(credentialsId: 'google-client-secret', variable: 'GOOGLE_CLIENT_SECRET'),
+                    string(credentialsId: 'mail-username', variable: 'MAIL_USERNAME'),
+                    string(credentialsId: 'mail-password', variable: 'MAIL_PASSWORD')
+                ]) {
+                    sh '''
+                        set -eux
+                        ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no ${EC2_HOST} "mkdir -p ${DEPLOY_PATH}"
+                        scp -i "$SSH_KEY" -o StrictHostKeyChecking=no backend/docker-compose.yml ${EC2_HOST}:${DEPLOY_PATH}/docker-compose.yml
+
+                        cat > .env.prod <<EOF
+IMAGE_NAMESPACE=${IMAGE_NAMESPACE}
+IMAGE_TAG=${IMAGE_TAG}
+BACKEND_URL=${BACKEND_URL}
+FRONTEND_URL=${FRONTEND_URL}
+MYSQL_PASSWORD=${MYSQL_PASSWORD}
+RABBITMQ_USERNAME=booknest
+RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+APP_INTERNAL_SECRET=${APP_INTERNAL_SECRET}
+JWT_SECRET=${JWT_SECRET}
+GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+MAIL_USERNAME=${MAIL_USERNAME}
+MAIL_PASSWORD=${MAIL_PASSWORD}
+EOF
+                        scp -i "$SSH_KEY" -o StrictHostKeyChecking=no .env.prod ${EC2_HOST}:${DEPLOY_PATH}/.env
+
+                        ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no ${EC2_HOST} "
+                          cd ${DEPLOY_PATH}
+                          docker compose pull
+                          docker compose up -d --remove-orphans
+                          docker image prune -f
+                        "
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Backend deployed successfully: ${params.BACKEND_URL}"
+        }
+        failure {
+            echo 'Backend deployment failed. Check the failed stage logs.'
+        }
+    }
+}
