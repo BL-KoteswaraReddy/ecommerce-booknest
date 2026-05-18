@@ -261,7 +261,7 @@ services:
     container_name: booknest-api-gateway
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "9090:8080"
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka
       EUREKA_INSTANCE_HOSTNAME: api-gateway

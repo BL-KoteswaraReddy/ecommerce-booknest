@@ -31,7 +31,7 @@ This project runs MySQL, Redis, RabbitMQ, Elasticsearch, Eureka, Gateway, and ma
 
 Security group inbound:
 - `22` from your IP only
-- `8080` from anywhere, or from CloudFront/custom frontend only
+- `9090` from anywhere, or from CloudFront/custom frontend only. Jenkins often uses `8080`, so this guide exposes the API gateway on `9090`.
 - `8761` from your IP only, optional for Eureka dashboard
 
 Install Docker on EC2:
@@ -73,7 +73,7 @@ Those error responses are important for Angular routes like `/profile`, `/checko
 In Google Cloud Console, add this authorized redirect URI:
 
 ```text
-http://YOUR_EC2_PUBLIC_DNS_OR_DOMAIN:8080/login/oauth2/code/google
+http://YOUR_EC2_PUBLIC_DNS_OR_DOMAIN:9090/login/oauth2/code/google
 ```
 
 If you later add HTTPS/custom domain, add the HTTPS URL too.
@@ -120,7 +120,7 @@ Build parameters:
 IMAGE_NAMESPACE = your-dockerhub-username
 IMAGE_TAG = latest
 EC2_HOST = ubuntu@YOUR_EC2_PUBLIC_DNS
-BACKEND_URL = http://YOUR_EC2_PUBLIC_DNS:8080
+BACKEND_URL = http://YOUR_EC2_PUBLIC_DNS:9090
 FRONTEND_URL = https://YOUR_CLOUDFRONT_DOMAIN
 ```
 
@@ -129,7 +129,7 @@ Run the backend job first.
 Check backend:
 
 ```bash
-curl http://YOUR_EC2_PUBLIC_DNS:8080/api/books
+curl http://YOUR_EC2_PUBLIC_DNS:9090/api/books
 ```
 
 ## Frontend Pipeline Job
@@ -144,7 +144,7 @@ Create another Jenkins Pipeline job:
 Build parameters:
 
 ```text
-API_URL = http://YOUR_EC2_PUBLIC_DNS:8080
+API_URL = http://YOUR_EC2_PUBLIC_DNS:9090
 S3_BUCKET = your-s3-bucket-name
 CLOUDFRONT_DISTRIBUTION_ID = your-cloudfront-distribution-id
 ```

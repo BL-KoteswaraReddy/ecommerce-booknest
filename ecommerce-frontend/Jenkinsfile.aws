@@ -7,12 +7,43 @@ pipeline {
     }
 
     parameters {
-        string(name: 'API_URL', defaultValue: 'http://your-ec2-public-dns:8080', description: 'Backend API gateway URL')
-        string(name: 'S3_BUCKET', defaultValue: 'your-booknest-frontend-bucket', description: 'S3 bucket for Angular build files')
+        string(name: 'API_URL', defaultValue: 'http://3.110.131.226:9090', description: 'Backend API gateway URL')
+        string(name: 'S3_BUCKET', defaultValue: 'koti-ecommerce-files-2026', description: 'S3 bucket for Angular build files')
         string(name: 'CLOUDFRONT_DISTRIBUTION_ID', defaultValue: 'YOUR_DISTRIBUTION_ID', description: 'CloudFront distribution ID')
     }
 
+    environment {
+        NODE_VERSION = '22.13.1'
+        NODE_HOME = "${WORKSPACE}/.tools/node"
+        PATH = "${WORKSPACE}/.tools/node/bin:${env.PATH}"
+    }
+
     stages {
+        stage('Setup Node') {
+            steps {
+                sh '''
+                    set -eux
+                    ARCH="$(uname -m)"
+                    case "$ARCH" in
+                      x86_64) NODE_ARCH="x64" ;;
+                      aarch64|arm64) NODE_ARCH="arm64" ;;
+                      *) echo "Unsupported CPU architecture: $ARCH"; exit 1 ;;
+                    esac
+
+                    mkdir -p "$WORKSPACE/.tools"
+                    if [ ! -x "$NODE_HOME/bin/npm" ]; then
+                      rm -rf "$NODE_HOME" "$WORKSPACE/.tools/node.tar.xz"
+                      curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz" -o "$WORKSPACE/.tools/node.tar.xz"
+                      tar -xJf "$WORKSPACE/.tools/node.tar.xz" -C "$WORKSPACE/.tools"
+                      mv "$WORKSPACE/.tools/node-v${NODE_VERSION}-linux-${NODE_ARCH}" "$NODE_HOME"
+                    fi
+
+                    node --version
+                    npm --version
+                '''
+            }
+        }
+
         stage('Install Dependencies') {
             steps {
                 dir('ecommerce-frontend') {
@@ -47,6 +78,7 @@ pipeline {
                     dir('ecommerce-frontend') {
                         sh '''
                             set -eux
+                            aws --version
                             DIST_DIR=$(find dist -type f -name index.html -exec dirname {} \\; | head -n 1)
                             test -n "$DIST_DIR"
                             aws s3 sync "$DIST_DIR/" "s3://${S3_BUCKET}/" --delete

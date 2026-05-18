@@ -9,9 +9,9 @@ pipeline {
     parameters {
         string(name: 'IMAGE_NAMESPACE', defaultValue: 'your-dockerhub-username', description: 'Docker Hub username or registry namespace')
         string(name: 'IMAGE_TAG', defaultValue: 'latest', description: 'Docker image tag, for example build-${BUILD_NUMBER}')
-        string(name: 'EC2_HOST', defaultValue: 'ubuntu@your-ec2-public-dns', description: 'EC2 SSH target')
-        string(name: 'BACKEND_URL', defaultValue: 'http://your-ec2-public-dns:8080', description: 'Public API gateway URL')
-        string(name: 'FRONTEND_URL', defaultValue: 'https://your-cloudfront-domain.cloudfront.net', description: 'Frontend URL allowed by CORS and OAuth callback')
+        string(name: 'EC2_HOST', defaultValue: 'ubuntu@3.110.131.226', description: 'EC2 SSH target')
+        string(name: 'BACKEND_URL', defaultValue: 'http://3.110.131.226:9090', description: 'Public API gateway URL')
+        string(name: 'FRONTEND_URL', defaultValue: 'https://d17jaet50zgeez.cloudfront.net', description: 'Frontend URL allowed by CORS and OAuth callback')
     }
 
     environment {
